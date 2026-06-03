@@ -1,0 +1,198 @@
+@using Umbraco.Cms.Web.Common.PublishedModels;
+@using Umbraco.Cms.Core.Security
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "HlavniLayout.cshtml";
+    ViewData["Title"] = "Změna hesla";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="password-card card shadow-sm border-0">
+                <div class="password-card__accent"></div>
+                <div class="card-header text-center bg-white border-0 pt-4 pb-2">
+                    <h2 class="mb-1">Změna hesla</h2>
+                    <p class="mb-0 text-muted small">Zadej staré heslo a dvakrát nové. Nové heslo musí mít alespoň 10
+                        znaků.</p>
+                    </div>
+                    <div class="card-body p-4">
+                        @if (TempData["SuccessMessage"] != null)
+                        {
+                            <div class="alert alert-success password-alert" role="alert">
+                                @TempData["SuccessMessage"]
+                            </div>
+                        }
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-danger password-alert" role="alert">
+                                @TempData["ErrorMessage"]
+                            </div>
+                        }
+
+                        <form action="/umbraco/surface/ModryZivot/ZmenaHesla" method="post" class="password-form">
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label for="oldPassword" class="form-label fw-semibold">Staré heslo</label>
+                                <div class="input-group password-group">
+                                    <input type="password" class="form-control password-input" id="oldPassword"
+                                           name="oldPassword" autocomplete="current-password" required>
+                                    <button type="button" class="btn btn-outline-secondary password-visibility-toggle"
+                                            data-password-target="oldPassword" aria-label="Zobrazit heslo" aria-pressed="false"
+                                            hidden>
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label fw-semibold">Nové heslo</label>
+                                <div class="input-group password-group">
+                                    <input type="password" class="form-control password-input" id="newPassword"
+                                           name="newPassword" autocomplete="new-password" minlength="10" required>
+                                    <button type="button" class="btn btn-outline-secondary password-visibility-toggle"
+                                            data-password-target="newPassword" aria-label="Zobrazit heslo" aria-pressed="false"
+                                            hidden>
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="confirmNewPassword" class="form-label fw-semibold">Potvrdit nové heslo</label>
+                                <div class="input-group password-group">
+                                    <input type="password" class="form-control password-input" id="confirmNewPassword"
+                                           name="confirmNewPassword" autocomplete="new-password" required>
+                                    <button type="button" class="btn btn-outline-secondary password-visibility-toggle"
+                                            data-password-target="confirmNewPassword" aria-label="Zobrazit heslo"
+                                            aria-pressed="false" hidden>
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-skaut-blue w-100 py-2 fw-semibold">Změnit heslo</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .password-card {
+            overflow: hidden;
+            border-radius: 1rem;
+            background: #fff;
+        }
+
+        .password-card__accent {
+            height: 0.35rem;
+            background: #004a99;
+        }
+
+        .password-form .form-control {
+            border-color: #d7e1ee;
+            background: #fff;
+        }
+
+        .password-group .form-control {
+            border-right: 0;
+        }
+
+        .password-group .password-visibility-toggle {
+            min-width: 2.75rem;
+            border-color: #d7e1ee;
+            color: #495057;
+        }
+
+        .password-group .password-visibility-toggle:hover,
+        .password-group .password-visibility-toggle:focus {
+            background-color: #e9ecef;
+            border-color: #cfd8e3;
+            color: #212529;
+        }
+
+        .password-form .form-control:focus {
+            border-color: #004a99;
+            box-shadow: 0 0 0 0.2rem rgba(0, 74, 153, 0.12);
+        }
+
+        .password-alert {
+            border-radius: 0.75rem;
+        }
+
+        .btn-skaut-blue {
+            background-color: #004a99;
+            border-color: #004a99;
+            color: #fff;
+        }
+
+        .btn-skaut-blue:hover,
+        .btn-skaut-blue:focus {
+            background-color: #003366;
+            border-color: #003366;
+            color: #fff;
+        }
+    </style>
+
+    <script>
+        (function () {
+            const passwordInputs = Array.from(document.querySelectorAll('.password-input'));
+
+            if (!passwordInputs.length) {
+                return;
+            }
+
+            const getToggleButton = (input) => document.querySelector(`.password-visibility-toggle[data-password-target="${input.id}"]`);
+
+            const showPassword = (input, button) => {
+                if (!input.value.length) {
+                    return;
+                }
+
+                input.type = 'text';
+                button.setAttribute('aria-pressed', 'true');
+                button.setAttribute('aria-label', 'Skrýt heslo');
+                button.querySelector('i').className = 'bi bi-eye-slash';
+            };
+
+            const hidePassword = (input, button) => {
+                input.type = 'password';
+                button.setAttribute('aria-pressed', 'false');
+                button.setAttribute('aria-label', 'Zobrazit heslo');
+                button.querySelector('i').className = 'bi bi-eye';
+            };
+
+            passwordInputs.forEach((input) => {
+                const button = getToggleButton(input);
+
+                if (!button) {
+                    return;
+                }
+
+                const updateVisibility = () => {
+                    button.hidden = input.value.length === 0;
+                    if (button.hidden) {
+                        hidePassword(input, button);
+                    }
+                };
+
+                input.addEventListener('input', updateVisibility);
+                input.addEventListener('blur', () => hidePassword(input, button));
+                button.addEventListener('pointerdown', function (event) {
+                    event.preventDefault();
+                    showPassword(input, button);
+                });
+                button.addEventListener('pointerup', function () {
+                    hidePassword(input, button);
+                });
+                button.addEventListener('pointercancel', function () {
+                    hidePassword(input, button);
+                });
+                button.addEventListener('pointerleave', function () {
+                    hidePassword(input, button);
+                });
+
+                updateVisibility();
+            });
+        })();
+    </script>

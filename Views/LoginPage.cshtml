@@ -1,0 +1,61 @@
+﻿@using Umbraco.Cms.Web.Common.Models
+@using Umbraco.Cms.Web.Common.Security
+@using Umbraco.Cms.Core.Security
+@using Umbraco.Cms.Core.Services
+@using System.Text
+@using System.Globalization
+@using Umbraco.Extensions
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.LoginPage>
+@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+@inject IMemberManager MemberManager
+@inject IMemberService MemberService
+@{
+    Layout = "HlavniLayout";
+
+    // LOGIKA PŘESMĚROVÁNÍ PŘIHLÁŠENÉHO UŽIVATELE
+    if (Context.User.Identity?.IsAuthenticated == true)
+    {
+        var identityUser = await MemberManager.GetCurrentMemberAsync();
+        if (identityUser != null)
+        {
+            var member = MemberService.GetByKey(Guid.Parse(identityUser.Key.ToString()));
+            var nazevDruziny = member?.GetValue<string>("druzina") ?? "";
+
+            if (!string.IsNullOrEmpty(nazevDruziny))
+            {
+                // Převedeme název družiny na URL bez diakritiky
+                string stext = nazevDruziny.Normalize(NormalizationForm.FormD);
+                StringBuilder sb = new StringBuilder();
+                foreach (char c in stext)
+                {
+                    if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                        sb.Append(c);
+                }
+                string urlDruziny = "/" + sb.ToString().Normalize(NormalizationForm.FormC).ToLower().Trim().Replace(" ", "-");
+
+                // Pošleme ho pryč z loginu na jeho stránku
+                Context.Response.Redirect(urlDruziny);
+                return;
+            }
+        }
+    }
+}
+
+<div class="row justify-content-center py-5">
+    <div class="col-md-5">
+        <div class="card p-4 shadow">
+
+            @if (Context.User.Identity?.IsAuthenticated != true)
+            {
+                @await Html.PartialAsync("Login", new LoginModel())
+            }
+            else
+            {
+                <div class="text-center">
+                    <p class="text-success fw-bold">Už jsi přihlášený!</p>
+                    <a href="/" class="btn btn-primary">Pokračovat na web</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

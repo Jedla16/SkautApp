@@ -1,0 +1,24 @@
+services:
+  skautapp:
+    image: ${SKAUTAPP_IMAGE:-skautapp:latest}
+    ports:
+      - "80:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:80
+      # Optional override for SQLite location (if you mount elsewhere):
+      # ConnectionStrings__umbracoDbDSN: "Data Source=|DataDirectory|/Modry_zivot.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
+    volumes:
+      - skautapp_data:/app/umbraco/Data
+      - skautapp_www:/app/wwwroot
+      - ./appsettings.Production.json:/app/appsettings.Production.json:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  skautapp_data:
+  skautapp_www:

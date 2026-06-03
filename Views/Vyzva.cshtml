@@ -1,0 +1,87 @@
+﻿@using SkautApp.Models
+@using SkautApp.Services
+@using Umbraco.Cms.Core.Security
+@inject IMemberManager MemberManager
+@inject ModryZivotService ModryZivotService
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "HlavniLayout.cshtml";
+
+    // Ochrana: Pokud není uživatel přihlášen, pošli ho na přihlášení
+    if (!(Context.User.Identity?.IsAuthenticated ?? false))
+    {
+        Context.Response.Redirect("/prihlaseni");
+        return;
+    }
+
+    var member = await MemberManager.GetCurrentMemberAsync();
+    
+    // Těch tvých 6 úkolů
+    var seznamVyzv = new List<VyzvaItem>
+    {
+        new VyzvaItem { Id = 1, Nazev = "Ranní cvičení", Ikona = "bi-heart-pulse" },
+        new VyzvaItem { Id = 2, Nazev = "Čištění zubů", Ikona = "bi-stars" },
+        new VyzvaItem { Id = 3, Nazev = "Mytí studenou vodou", Ikona = "bi-droplet-fill" },
+        new VyzvaItem { Id = 4, Nazev = "Slušná mluva", Ikona = "bi-chat-quote" },
+        new VyzvaItem { Id = 5, Nazev = "Dobrý skutek", Ikona = "bi-sun" },
+        new VyzvaItem { Id = 6, Nazev = "Pravdomluvnost", Ikona = "bi-shield-check" }
+    };
+
+    if (member != null)
+    {
+        foreach(var v in seznamVyzv) {
+            v.Splneno = ModryZivotService.JeSplneno(member.Key, v.Id, DateTime.Today);
+        }
+    }
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary">Modrý život ⚜️</h1>
+        <p class="lead">Ahoj @(member?.Name ?? "skaute"), zaznamenej si své dnešní úspěchy.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        @foreach (var polozka in seznamVyzv)
+        {
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 shadow-sm vyzv-card @(polozka.Splneno ? "border-success bg-light" : "")" 
+                     onclick="ulozVyzvu(this, @polozka.Id)" 
+                     style="cursor: pointer; transition: 0.3s; border-width: 2px;">
+                    <div class="card-body text-center">
+                        <i class="bi @polozka.Ikona fs-1 mb-3 @(polozka.Splneno ? "text-success" : "text-primary")"></i>
+                        <h5 class="card-title fw-bold">@polozka.Nazev</h5>
+                        <div class="mt-2">
+                            @if (polozka.Splneno) {
+                                <span class="badge bg-success p-2"><i class="bi bi-check-lg"></i> Splněno</span>
+                            } else {
+                                <span class="badge bg-secondary p-2">Zbývá</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+function ulozVyzvu(element, id) {
+    const uzJeSplneno = element.classList.contains('border-success');
+    const novyStav = !uzJeSplneno;
+
+    fetch(`/umbraco/surface/modryzivot/ulozZapis?vyzvaId=${id}&stav=${novyStav}`, {
+        method: 'POST'
+    })
+    .then(response => {
+        if(response.ok) {
+            location.reload(); // Pro začátek nejjednodušší způsob, jak aktualizovat vzhled
+        }
+    });
+}
+</script>
+
+<style>
+    .vyzv-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+    .text-primary { color: #004a99 !important; }
+</style>

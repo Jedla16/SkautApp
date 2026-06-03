@@ -1,0 +1,117 @@
+﻿@using Umbraco.Cms.Web.Common.Views
+@using Umbraco.Cms.Core.Security
+@using Umbraco.Cms.Core.Services
+@using System.Text
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inject IMemberManager MemberManager
+@inject IMemberService MemberService
+@{
+    Layout = null;
+    var identityUser = await MemberManager.GetCurrentMemberAsync();
+    var isAuth = identityUser != null;
+
+    string odkazNaVyzvy = "/";
+    if (isAuth)
+    {
+        var memberKeyString = identityUser.Key.ToString();
+        var member = MemberService.GetByKey(Guid.Parse(memberKeyString));
+
+        if (member != null)
+        {
+            var nazevDruziny = member.GetValue<string>("druzina") ?? "";
+            if (!string.IsNullOrEmpty(nazevDruziny))
+            {
+                // ODSTRANĚNÍ DIAKRITIKY (z "roveři" udělá "roveri")
+                string stext = nazevDruziny.Normalize(NormalizationForm.FormD);
+                StringBuilder sb = new StringBuilder();
+                foreach (char c in stext)
+                {
+                    if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                        sb.Append(c);
+                }
+                string bezDiakritiky = sb.ToString().Normalize(NormalizationForm.FormC);
+                odkazNaVyzvy = "/" + bezDiakritiky.ToLower().Trim().Replace(" ", "-");
+            }
+        }
+    }
+}
+
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modrý Život - SkautApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+            body {
+                background-color: #f8f9fa;
+            }
+
+            .navbar {
+                background-color: #004a99;
+            }
+
+            .nav-link {
+                color: rgba(255, 255, 255, 0.8) !important;
+            }
+
+            .nav-link:hover {
+                color: #fff !important;
+            }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">⚜️ Modrý Život</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    @if (isAuth)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold" href="@odkazNaVyzvy">💪 Moje výzvy</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/zebricek">🏆 Žebříček</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/zmena-hesla">🔑 Změna hesla</a>
+                        </li>
+                        <li class="nav-item ms-lg-3">
+                            <form action="/umbraco/surface/ModryZivot/Odhlasit" method="post" class="m-0">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-light">
+                                    Odhlásit (@identityUser.Name)
+                                </button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="/prihlaseni">Přihlásit se</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        @* TADY JE TO DŮLEŽITÉ MÍSTO, KTERÉ CHYBĚLO *@
+        @RenderBody()
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

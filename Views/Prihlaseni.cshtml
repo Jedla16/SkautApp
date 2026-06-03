@@ -1,0 +1,54 @@
+@using Umbraco.Cms.Web.Common.Models
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "HlavniLayout.cshtml";
+    ViewData["Title"] = "Přihlášení";
+    var isAuth = Context.User.Identity?.IsAuthenticated == true;
+}
+
+<style>
+    .login-page-wrap {
+        min-height: calc(100vh - 160px);
+        display: flex;
+        align-items: center;
+    }
+
+    .login-page-card {
+        border: 0;
+        border-radius: 1.2rem;
+        box-shadow: 0 1rem 2.5rem rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+    }
+
+    .login-page-card__accent {
+        height: 0.35rem;
+        background: #004a99;
+    }
+</style>
+
+<div class="container py-5 login-page-wrap">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-6 col-lg-5">
+            <div class="login-page-card bg-white">
+                <div class="login-page-card__accent"></div>
+                <div class="p-4 p-lg-5">
+                    <div class="text-center mb-4">
+                        <h1 class="h3 fw-bold mb-2">Přihlášení</h1>
+                    </div>
+
+                    @if (isAuth)
+                    {
+                        <div class="text-center">
+                            <p class="text-success fw-bold">Už jsi přihlášený!</p>
+                            <a href="/" class="btn btn-skaut-blue">Pokračovat na web</a>
+                        </div>
+                    }
+                    else
+                    {
+                        @await Html.PartialAsync("Login", new LoginModel())
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

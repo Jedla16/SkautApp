@@ -1,0 +1,21 @@
+bin/
+obj/
+.vs/
+*.db
+*.sqlite
+*.user
+*.suo
+node_modules/
+**/bin/
+**/obj/
+.nuget/
+.vscode/
+.DS_Store
+*.log
+
+# Docker files
+Dockerfile.dev
+
+# Publish output
+publish/
+

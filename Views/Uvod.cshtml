@@ -1,0 +1,303 @@
+@using Umbraco.Cms.Web.Common.Models
+@using Umbraco.Cms.Core.Security
+@using Umbraco.Cms.Core.Services
+@using System.Text
+@using System.Globalization
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@inject IMemberManager MemberManager
+@inject IMemberService MemberService
+@{
+    Layout = "HlavniLayout.cshtml";
+    ViewData["Title"] = "Modrý život";
+    var isAuth = Context.User.Identity?.IsAuthenticated == true;
+
+    var cilVyzvy = "/prihlaseni";
+    if (isAuth)
+    {
+        var identityUser = await MemberManager.GetCurrentMemberAsync();
+        if (identityUser != null)
+        {
+            var member = MemberService.GetByKey(Guid.Parse(identityUser.Key.ToString()));
+            var nazevDruziny = member?.GetValue<string>("druzina") ?? "";
+
+            if (!string.IsNullOrEmpty(nazevDruziny))
+            {
+                string stext = nazevDruziny.Normalize(NormalizationForm.FormD);
+                var sb = new StringBuilder();
+                foreach (char c in stext)
+                {
+                    if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    {
+                        sb.Append(c);
+                    }
+                }
+
+                cilVyzvy = "/" + sb.ToString().Normalize(NormalizationForm.FormC).ToLower().Trim().Replace(" ", "-");
+            }
+        }
+    }
+}
+
+<style>
+    .hero-wrap {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1.5rem;
+        background:
+            radial-gradient(circle at top left, rgba(0, 74, 153, 0.12), transparent 34%),
+            radial-gradient(circle at bottom right, rgba(104, 167, 255, 0.16), transparent 28%),
+            linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);
+        box-shadow: 0 1rem 2.5rem rgba(15, 23, 42, 0.08);
+    }
+
+    .hero-eyebrow {
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #004a99;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .hero-title {
+        font-weight: 800;
+        line-height: 1.05;
+    }
+
+    .hero-lead {
+        color: #475569;
+        max-width: 42rem;
+    }
+
+    .hero-image-shell {
+        position: relative;
+        border-radius: 1.25rem;
+        background: linear-gradient(180deg, rgba(0, 74, 153, 0.05), rgba(0, 74, 153, 0.11));
+        border: 1px solid rgba(0, 74, 153, 0.10);
+        overflow: hidden;
+        min-height: 100%;
+    }
+
+    .hero-image-shell img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .hero-card {
+        border: 0;
+        border-radius: 1.2rem;
+        box-shadow: 0 0.75rem 1.75rem rgba(15, 23, 42, 0.06);
+    }
+
+    .feature-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 74, 153, 0.08);
+        color: #004a99;
+        font-size: 1.2rem;
+        flex: 0 0 auto;
+    }
+
+    .section-kicker {
+        color: #004a99;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.78rem;
+    }
+
+    .step-card {
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 1.15rem;
+        background: #fff;
+        box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.04);
+        height: 100%;
+    }
+
+    .step-number {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        background: #004a99;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        flex: 0 0 auto;
+    }
+
+    .btn-skaut-blue {
+        background-color: #004a99;
+        border-color: #004a99;
+        color: #fff;
+    }
+
+    .btn-skaut-blue:hover,
+    .btn-skaut-blue:focus {
+        background-color: #003366;
+        border-color: #003366;
+        color: #fff;
+    }
+
+    .soft-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(0, 74, 153, 0.08);
+        color: #004a99;
+        font-weight: 600;
+        font-size: 0.92rem;
+    }
+</style>
+
+<div class="container py-4 py-lg-5">
+    <section class="hero-wrap p-4 p-lg-5 mb-4 mb-lg-5">
+        <div class="row align-items-center g-4 g-lg-5">
+            <div class="col-lg-6">
+                <div class="hero-eyebrow mb-3">Modrý život</div>
+                <h1 class="display-4 hero-title mb-3">Buď připraven!</h1>
+                <p class="lead hero-lead mb-4">
+                    Modrý život je skautská výzva, kde si každý den zapisuješ splněné úkoly,
+                    sleduješ svůj pokrok a porovnáváš se s ostatními v družině.
+                </p>
+
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <a href="@cilVyzvy" class="btn btn-skaut-blue btn-lg px-4">
+                        @(isAuth ? "Přejít k výzvám" : "Přihlásit se")
+                    </a>
+                    <a href="/zebricek" class="btn btn-outline-primary btn-lg px-4">Žebříček</a>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="soft-badge">⚜️ Přehled výzev</span>
+                    <span class="soft-badge">📈 Historie splnění</span>
+                    <span class="soft-badge">🏆 Družinový žebříček</span>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="hero-image-shell">
+                    <img src="/media/modry-zivot-uvod.png" alt="Ilustrační obrázek Modrého života" />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-4 mb-lg-5">
+        <div class="text-center mb-4">
+            <div class="section-kicker mb-2">Jak to funguje</div>
+            <h2 class="fw-bold mb-0">Tři jednoduché kroky</h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card p-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="step-number">1</div>
+                        <div>
+                            <h3 class="h5 mb-2">Přihlas se</h3>
+                            <p class="mb-0 text-muted">Použij své jméno a heslo. Po přihlášení se ti ukáže tvoje družina
+                                a její výzvy.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="step-card p-4">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="step-number">2</div>
+                            <div>
+                                <h3 class="h5 mb-2">Označ výzvy</h3>
+                                <p class="mb-0 text-muted">Každý den si u jednotlivých výzev kliknutím zapíšeš, co jsi
+                                    zvládl.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="step-card p-4">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="step-number">3</div>
+                                <div>
+                                    <h3 class="h5 mb-2">Sleduj svůj pokrok</h3>
+                                    <p class="mb-0 text-muted">V historii i žebříčku hned vidíš, jak se ti daří dlouhodobě a jak
+                                        jste na tom jako družinka.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="row g-4 align-items-stretch">
+                    <div class="col-lg-7">
+                        <div class="card hero-card h-100">
+                            <div class="card-body p-4 p-lg-5">
+                                <div class="section-kicker mb-2">Co v aplikaci najdeš</div>
+                                <h2 class="fw-bold mb-4">Vše důležité na jednom místě</h2>
+                                <div class="d-grid gap-3">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <span class="feature-icon">💪</span>
+                                        <div>
+                                            <div class="fw-semibold">Výzvy na každý den</div>
+                                            <div class="text-muted">Přehled úkolů podle družiny a rychlé označení splnění.</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start gap-3">
+                                        <span class="feature-icon">🗓️</span>
+                                        <div>
+                                            <div class="fw-semibold">Historie aktivit</div>
+                                            <div class="text-muted">Barevná mapa ti ukáže, jak pravidelně plníš své cíle.</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start gap-3">
+                                        <span class="feature-icon">🏅</span>
+                                        <div>
+                                            <div class="fw-semibold">Žebříček jednotlivců i družin</div>
+                                            <div class="text-muted">Snadno porovnáš výsledky a uvidíš, jak si vedeš ty i celá
+                                                družina.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5" id="prihlaseni">
+                        <div class="card hero-card h-100">
+                            <div class="card-body p-4 p-lg-5">
+                                <div class="section-kicker mb-2">Přihlášení</div>
+                                <h2 class="fw-bold mb-3">Začni tady</h2>
+                                <p class="text-muted mb-4">Jakmile se přihlásíš, dostaneš se přímo k denním výzvám.
+                                </p>
+
+                                @if (isAuth)
+                                {
+                                    <div class="alert alert-info mb-4" role="alert">
+                                        Už jsi přihlášený. Můžeš rovnou pokračovat do svých výzev.
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <a href="@cilVyzvy" class="btn btn-skaut-blue btn-lg">Moje výzvy</a>
+                                        <a href="/zebricek" class="btn btn-outline-primary btn-lg">Žebříček</a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-grid gap-2">
+                                        <a href="/prihlaseni" class="btn btn-skaut-blue btn-lg">Otevřít přihlášení</a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
