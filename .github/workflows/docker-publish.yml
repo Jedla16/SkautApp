@@ -22,6 +22,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to registry
+        if: ${{ secrets.REGISTRY_URL != '' && secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_PASSWORD != '' }}
         uses: docker/login-action@v2
         with:
           registry: ${{ secrets.REGISTRY_URL }}
@@ -33,6 +34,6 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ secrets.REGISTRY_URL }}/skautapp:latest
+          push: ${{ secrets.REGISTRY_URL != '' && secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_PASSWORD != '' }}
+          tags: ${{ secrets.REGISTRY_URL != '' && format('{0}/skautapp:latest', secrets.REGISTRY_URL) || 'skautapp:latest' }}
           file: ./Dockerfile
