@@ -5,15 +5,17 @@ services:
     ports:
       - "80:80"
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS: http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
     volumes:
       - ./umbraco/Data:/app/umbraco/Data
-      - ./wwwroot:/app/wwwroot
-      - ./appsettings.json:/app/appsettings.json:ro
+      - skautapp-media:/app/wwwroot/media
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+volumes:
+  skautapp-media:

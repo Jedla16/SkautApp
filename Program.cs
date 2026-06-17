@@ -3,14 +3,7 @@ using System.IO;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 var contentRoot = builder.Environment.ContentRootPath;
-var dataDir = Path.Combine(contentRoot, "umbraco", "Data");
-var mediaDir = Path.Combine(contentRoot, "wwwroot", "media");
-
-Directory.CreateDirectory(dataDir);
-Directory.CreateDirectory(mediaDir);
-
-// Ensure |DataDirectory| resolves to the container/app data folder so SQLite path works reliably.
-AppContext.SetData("DataDirectory", dataDir);
+AppContext.SetData("DataDirectory", Path.Combine(contentRoot, "umbraco", "Data"));
 
 builder.CreateUmbracoBuilder()
     .AddBackOffice()
@@ -21,10 +14,8 @@ builder.CreateUmbracoBuilder()
 
 WebApplication app = builder.Build();
 
+// Tady byl ten zakopaný pes - Umbraco se musí nejdřív nabootovat
 await app.BootUmbracoAsync();
-
-// Simple health endpoint for container orchestration and load balancers
-app.MapGet("/health", () => Results.Text("OK"));
 
 app.UseUmbraco()
     .WithMiddleware(u =>
