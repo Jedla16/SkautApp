@@ -18,10 +18,14 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 EXPOSE 80
 
 COPY --from=build /app/publish .
+COPY backup-db /seed-db
+COPY docker-entrypoint.sh /docker-entrypoint.sh
 
 # Ensure Umbraco's writable folders exist in the image so Docker volume initialization
 # and first boot both see the expected directory structure.
 RUN mkdir -p /app/umbraco/Data /app/wwwroot/media \
-	&& chown -R app:app /app/umbraco /app/wwwroot
+	&& chmod +x /docker-entrypoint.sh
 
-ENTRYPOINT ["dotnet", "SkautApp.dll"]
+USER root
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
