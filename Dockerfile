@@ -19,7 +19,9 @@ EXPOSE 80
 
 COPY --from=build /app/publish .
 
-# Ensure umbraco data path exists (will be populated by bind mount in compose)
-RUN mkdir -p umbraco/Data && mkdir -p wwwroot || true
+# Ensure Umbraco's writable folders exist in the image so Docker volume initialization
+# and first boot both see the expected directory structure.
+RUN mkdir -p /app/umbraco/Data /app/wwwroot/media \
+	&& chown -R app:app /app/umbraco /app/wwwroot
 
 ENTRYPOINT ["dotnet", "SkautApp.dll"]
