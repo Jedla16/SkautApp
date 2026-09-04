@@ -9,5 +9,5 @@ services:
       - "80:8080"
     volumes:
       # Propojení databáze a médií s diskem serveru
-      - ./umbraco_data:/app/umbraco/Data
+      - ./umbraco/Data:/app/umbraco/Data
       - ./umbraco_media:/app/wwwroot/media
