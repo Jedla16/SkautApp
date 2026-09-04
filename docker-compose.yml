@@ -12,5 +12,6 @@ services:
       - ConnectionStrings__umbracoDbDSN=Data Source=/app/umbraco/Data/Modry_zivot.sqlite.db;Cache=Shared;
     volumes:
       - ./umbraco/Data:/app/umbraco/Data
+      - ./wwwroot/images:/app/wwwroot/images
       - ./wwwroot/media:/app/wwwroot/media
     restart: always
