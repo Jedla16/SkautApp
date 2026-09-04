@@ -2,12 +2,14 @@ version: '3.8'
 
 services:
   skautapp:
-    build: .
-    container_name: skautapp_web
-    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "80:8080"
+    environment:
+      - ConnectionStrings__umbracoDbDSN=Data Source=/app/umbraco/Data/Modry_zivot.sqlite.db;Cache=Shared;
+      - Umbraco__CMS__Runtime__Mode=Production
     volumes:
-      # Propojení databáze a médií s diskem serveru
       - ./umbraco/Data:/app/umbraco/Data
-      - ./umbraco_media:/app/wwwroot/media
+    restart: always
