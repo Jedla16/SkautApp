@@ -6,8 +6,9 @@ services:
     ports:
       - "80:8080"
     environment:
-      - ConnectionStrings__umbracoDbDSN=Data Source=/app/umbraco/Data/Modry_zivot.sqlite.db;Cache=Shared;
-      - Umbraco__CMS__Runtime__Mode=Production
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Umbraco__CMS__Runtime__Mode=BackofficeDevelopment
+      - Umbraco__CMS__ModelsBuilder__ModelsMode=Nothing
     volumes:
       - ./umbraco/Data:/app/umbraco/Data
     restart: always
