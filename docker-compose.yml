@@ -8,6 +8,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Umbraco__CMS__Runtime__Mode=Development
+      - Umbraco__CMS__ModelsBuilder__ModelsMode=Nothing
       - ConnectionStrings__umbracoDbDSN=Data Source=/app/umbraco/Data/Modry_zivot.sqlite.db;Cache=Shared;
     volumes:
       - ./umbraco/Data:/app/umbraco/Data
