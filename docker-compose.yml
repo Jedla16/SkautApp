@@ -1,21 +1,13 @@
+version: '3.8'
+
 services:
   skautapp:
     build: .
-    image: skautapp:latest
+    container_name: skautapp_web
+    restart: always
     ports:
-      - "80:80"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:80
+      - "80:8080"
     volumes:
-      - ./umbraco/Data:/app/umbraco/Data
-      - skautapp-media:/app/wwwroot/media
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-volumes:
-  skautapp-media:
+      # Propojení databáze a médií s diskem serveru
+      - ./umbraco_data:/app/umbraco/Data
+      - ./umbraco_media:/app/wwwroot/media

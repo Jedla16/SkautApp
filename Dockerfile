@@ -1,31 +1,26 @@
+# 1. Fáze sestavení
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# copy csproj and restore as distinct layers
+# Kopírování a obnova závislostí
 COPY ["SkautApp.csproj", "./"]
 RUN dotnet restore "SkautApp.csproj"
 
-# copy everything and publish
+# Kopírování zbytku kódu a publikace
 COPY . .
 RUN dotnet publish "SkautApp.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# 2. Fáze spuštění (Runtime)
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
-ENV ASPNETCORE_URLS=http://+:80
-ENV ASPNETCORE_ENVIRONMENT=Production
-
-EXPOSE 80
+# Příprava složky pro trvalá data Umbraca
+RUN mkdir -p /app/umbraco/Data /app/wwwroot/media
 
 COPY --from=build /app/publish .
-COPY backup-db /seed-db
-COPY docker-entrypoint.sh /docker-entrypoint.sh
 
-# Ensure Umbraco's writable folders exist in the image so Docker volume initialization
-# and first boot both see the expected directory structure.
-RUN mkdir -p /app/umbraco/Data /app/wwwroot/media \
-	&& chmod +x /docker-entrypoint.sh
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+EXPOSE 8080
 
-USER root
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["dotnet", "SkautApp.dll"]
