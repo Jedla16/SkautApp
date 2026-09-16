@@ -36,6 +36,7 @@ namespace SkautApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Zapis(string vyzvaId, bool splneno)
         {
             // 1. Zjistíme, kdo je přihlášený

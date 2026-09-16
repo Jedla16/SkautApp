@@ -212,6 +212,40 @@
         color: #fff;
     }
 
+    .vyzvy-save-bar {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin: 1rem -0.75rem 0;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 -0.25rem 1rem rgba(15, 23, 42, 0.12);
+    }
+
+    .vyzvy-save-button {
+        background-color: #004a99;
+        border-color: #004a99;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .vyzvy-save-button:hover,
+    .vyzvy-save-button:focus {
+        background-color: #003366;
+        border-color: #003366;
+        color: #fff;
+    }
+
+    .vyzvy-save-status {
+        min-height: 1.5rem;
+        color: #495057;
+    }
+
     .status-text {
         font-weight: bold;
     }
@@ -340,21 +374,28 @@
                             <div class="vyzva-row">
                                 <span class="vyzva-dot" aria-hidden="true"></span>
                                 <div class="fw-medium vyzva-text">@(string.IsNullOrWhiteSpace(dynamicVyzvaText) ? vyzva.Name
-                                                                                                                                            : dynamicVyzvaText)</div>
+                                                                                                                                                                                                                                                        : dynamicVyzvaText)</div>
             </div>
         </td>
         <td class="text-center">
             <button type="button"
                     class="btn btn-outline-primary btn-vyzva-toggle rounded-pill @(splneno ? "is-active" : "")"
-                    data-vyzva-id="@vyzva.Id" aria-pressed="@(splneno.ToString().ToLowerInvariant())"
-                    onclick="ulozitSplneni(event, this)">
-                @(splneno ? "Splněno" : "Mám hotovo")
+                    data-vyzva-id="@vyzva.Id" data-puvodne-splneno="@(splneno.ToString().ToLowerInvariant())"
+                    aria-pressed="@(splneno.ToString().ToLowerInvariant())" onclick="zmenitSplneni(this)">
+                @(splneno ? "Splněno" : "Označit jako splněno")
             </button>
         </td>
     </tr>
 }
 </tbody>
 </table>
+</div>
+
+<div class="vyzvy-save-bar">
+    <button type="button" id="ulozit-vyzvy" class="btn vyzvy-save-button rounded-pill" onclick="ulozitVyzvy()">
+        Uložit výzvy
+    </button>
+    <span id="vyzvy-save-status" class="vyzvy-save-status" role="status" aria-live="polite"></span>
 </div>
 </div>
 
@@ -375,40 +416,54 @@
 </style>
 
 <script>
-    async function ulozitSplneni(event, button) {
+    function zmenitSplneni(button) {
         const radek = button.closest('tr');
         const budeSplneno = !button.classList.contains('is-active');
-        const idVyzvy = button.dataset.vyzvaId;
 
-        // Vizuální změna hned
         button.classList.toggle('is-active', budeSplneno);
         button.setAttribute('aria-pressed', budeSplneno ? 'true' : 'false');
-        button.textContent = budeSplneno ? 'Splněno' : 'Mám hotovo';
+        button.textContent = budeSplneno ? 'Splněno' : 'Označit jako splněno';
         radek.classList.toggle('splneno', budeSplneno);
+        document.getElementById('vyzvy-save-status').textContent = 'Máte neuložené změny.';
+    }
 
-        // ZÍSKÁNÍ TOKENU (Aby nás Umbraco pustilo dál)
+    async function ulozitVyzvy() {
+        const saveButton = document.getElementById('ulozit-vyzvy');
+        const status = document.getElementById('vyzvy-save-status');
+        const buttons = Array.from(document.querySelectorAll('.btn-vyzva-toggle'));
+        const zmenene = buttons.filter(button =>
+            button.classList.contains('is-active') !== (button.dataset.puvodneSplneno === 'true'));
+
+        if (zmenene.length === 0) {
+            status.textContent = 'Nemáte žádné změny k uložení.';
+            return;
+        }
+
+        saveButton.disabled = true;
+        status.textContent = 'Ukládám...';
         const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-        const formData = new FormData();
-        formData.append('vyzvaId', idVyzvy);
-        formData.append('splneno', budeSplneno);
-        formData.append('__RequestVerificationToken', token); // Přidáme token do dat
-
         try {
-            const response = await fetch('/umbraco/surface/ModryZivot/Zapis', {
-                method: 'POST',
-                body: formData
-            });
+            for (const button of zmenene) {
+                const formData = new FormData();
+                formData.append('vyzvaId', button.dataset.vyzvaId);
+                formData.append('splneno', button.classList.contains('is-active'));
+                formData.append('__RequestVerificationToken', token);
 
-            if (!response.ok) throw new Error("Chyba " + response.status);
-            console.log("Uloženo!");
+                const response = await fetch('/umbraco/surface/ModryZivot/Zapis', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('Chyba ' + response.status);
+            }
+
+            window.location.reload();
         } catch (error) {
             console.error(error);
-            alert("Chyba při ukládání. Zkus se znovu přihlásit.");
-            button.classList.toggle('is-active', !budeSplneno);
-            button.setAttribute('aria-pressed', (!budeSplneno).toString());
-            button.textContent = !budeSplneno ? 'Splněno' : 'Mám hotovo';
-            radek.classList.toggle('splneno', !budeSplneno);
+            saveButton.disabled = false;
+            status.textContent = 'Uložení se nezdařilo.';
+            alert('Chyba při ukládání. Zkus se znovu přihlásit.');
         }
     }
 </script>

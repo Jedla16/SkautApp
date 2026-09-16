@@ -14,4 +14,4 @@ services:
       - ./umbraco/Data:/app/umbraco/Data
       - ./wwwroot/images:/app/wwwroot/images
       - ./wwwroot/media:/app/wwwroot/media
-    restart: always
+    restart: alwaysth 

@@ -8,9 +8,9 @@ namespace SkautApp.Services
     // Pomocná třída pro data v žebříčku
     public class ZebricekItem
     {
-        public string Jmeno { get; set; }
-        public string Druzina { get; set; }
-        public int Body { get; set; }
+        public string Jmeno { get; set; } = string.Empty;
+        public string Druzina { get; set; } = string.Empty;
+        public decimal Body { get; set; }
     }
 
     public class ModryZivotService
@@ -52,7 +52,7 @@ namespace SkautApp.Services
                             VALUES (@mid, @vid, @dat, @spl)
                             ON CONFLICT(MemberId, VyzvaId, Datum) 
                             DO UPDATE SET Splneno = @spl";
-                
+
                 var command = new SqliteCommand(sql, db);
                 command.Parameters.AddWithValue("@mid", memberId);
                 command.Parameters.AddWithValue("@vid", vyzvaId);
@@ -92,7 +92,7 @@ namespace SkautApp.Services
                             WHERE MemberId = @mid AND Splneno = 1 AND Datum >= @startDate 
                             GROUP BY Datum 
                             ORDER BY Datum ASC";
-                
+
                 var command = new SqliteCommand(sql, db);
                 command.Parameters.AddWithValue("@mid", memberId);
                 command.Parameters.AddWithValue("@startDate", startDate.ToString("yyyy-MM-dd"));
@@ -128,7 +128,7 @@ namespace SkautApp.Services
                             WHERE Splneno = 1 
                             GROUP BY MemberId 
                             ORDER BY Pocet DESC";
-                
+
                 var command = new SqliteCommand(sql, db);
                 using (var reader = command.ExecuteReader())
                 {
@@ -136,16 +136,16 @@ namespace SkautApp.Services
                     {
                         var memberId = reader.GetInt32(0);
                         var body = reader.GetInt32(1);
-                        
+
                         // Vytáhneme info o členovi z Umbraca
                         var member = _memberService.GetById(memberId);
                         if (member != null)
                         {
-                            list.Add(new ZebricekItem 
-                            { 
-                                Jmeno = member.Name, 
-                                Druzina = member.GetValue<string>("druzina") ?? "Bez družiny", 
-                                Body = body 
+                            list.Add(new ZebricekItem
+                            {
+                                Jmeno = member.Name ?? string.Empty,
+                                Druzina = member.GetValue<string>("druzina") ?? "Bez družiny",
+                                Body = body
                             });
                         }
                     }
@@ -154,17 +154,23 @@ namespace SkautApp.Services
             return list;
         }
 
-        // Žebříček družin (využívá data z jednotlivců a sčítá je)
+        // Žebříček družin (průměr splněných výzev na člena družiny)
         public List<ZebricekItem> GetZebricekDruzin()
         {
             var jednotlivci = GetZebricekJednotlivcu();
-            
+            var pocetClenuDruziny = _memberService
+                .GetAllMembers()
+                .GroupBy(member => member.GetValue<string>("druzina") ?? "Bez družiny")
+                .ToDictionary(group => group.Key, group => group.Count());
+
             return jednotlivci
                 .GroupBy(x => x.Druzina)
-                .Select(g => new ZebricekItem 
-                { 
-                    Druzina = g.Key, 
-                    Body = g.Sum(x => x.Body) 
+                .Select(g => new ZebricekItem
+                {
+                    Druzina = g.Key,
+                    Body = pocetClenuDruziny.TryGetValue(g.Key, out var pocetClenu) && pocetClenu > 0
+                        ? g.Sum(x => x.Body) / pocetClenu
+                        : 0
                 })
                 .OrderByDescending(x => x.Body)
                 .ToList();
