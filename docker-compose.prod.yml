@@ -1,11 +1,10 @@
 services:
   skautapp:
     image: ${SKAUTAPP_IMAGE:-skautapp:latest}
-    ports:
-      - "80:80"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS: http://+:80
+      ASPNETCORE_URLS: http://+:8080
+      Umbraco__CMS__WebRouting__UmbracoApplicationUrl: https://${DOMAIN:-mz-robinsoni.duckdns.org}
       # Optional override for SQLite location (if you mount elsewhere):
       # ConnectionStrings__umbracoDbDSN: "Data Source=|DataDirectory|/Modry_zivot.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
     volumes:
@@ -14,11 +13,28 @@ services:
       - ./appsettings.Production.json:/app/appsettings.Production.json:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
 
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-mz-robinsoni.duckdns.org}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - skautapp
+
 volumes:
   skautapp_data:
   skautapp_www:
+  caddy_data:
+  caddy_config:
