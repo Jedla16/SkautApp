@@ -1,5 +1,8 @@
 services:
   skautapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: ${SKAUTAPP_IMAGE:-skautapp:latest}
     environment:
       ASPNETCORE_ENVIRONMENT: Production
