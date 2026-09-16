@@ -8,7 +8,7 @@ services:
       # Optional override for SQLite location (if you mount elsewhere):
       # ConnectionStrings__umbracoDbDSN: "Data Source=|DataDirectory|/Modry_zivot.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
     volumes:
-      - skautapp_data:/app/umbraco/Data
+      - ./umbraco/Data:/app/umbraco/Data
       - skautapp_www:/app/wwwroot
       - ./appsettings.Production.json:/app/appsettings.Production.json:ro
     restart: unless-stopped
@@ -34,7 +34,6 @@ services:
       - skautapp
 
 volumes:
-  skautapp_data:
   skautapp_www:
   caddy_data:
   caddy_config:

@@ -15,12 +15,15 @@ namespace SkautApp.Services
 
     public class ModryZivotService
     {
-        private readonly string _connectionString = "Data Source=ModryZivot.db";
+        private readonly string _connectionString;
         private readonly IMemberService _memberService;
 
         public ModryZivotService(IMemberService memberService)
         {
             _memberService = memberService;
+            var dataDirectory = AppContext.GetData("DataDirectory")?.ToString()
+                ?? Path.Combine(AppContext.BaseDirectory, "umbraco", "Data");
+            _connectionString = $"Data Source={Path.Combine(dataDirectory, "ModryZivot.db")};Cache=Shared;";
             InitDatabase();
         }
 
