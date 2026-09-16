@@ -18,6 +18,8 @@ WORKDIR /app
 RUN mkdir -p /app/umbraco/Data /app/wwwroot/media
 
 COPY --from=build /app/publish .
+# Keep runtime-loaded Razor views available in the production image.
+COPY --from=build /src/Views ./Views
 
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
