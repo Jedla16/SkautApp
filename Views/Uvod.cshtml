@@ -84,6 +84,62 @@
         display: block;
     }
 
+    .hero-image-button {
+        display: block;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: zoom-in;
+    }
+
+    .image-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background: rgba(3, 16, 35, 0.9);
+    }
+
+    .image-lightbox[hidden] {
+        display: none;
+    }
+
+    .image-lightbox img {
+        max-width: 100%;
+        max-height: calc(100vh - 4rem);
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 0.5rem;
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+        cursor: zoom-out;
+    }
+
+    .image-lightbox-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: 2.75rem;
+        height: 2.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.35);
+        color: #fff;
+        font-size: 1.75rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .image-lightbox-close:hover,
+    .image-lightbox-close:focus {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
     .hero-card {
         border: 0;
         border-radius: 1.2rem;
@@ -185,11 +241,22 @@
 
             <div class="col-lg-6">
                 <div class="hero-image-shell">
-                    <img src="/images/modry-zivot-uvod.png" alt="Ilustrační obrázek Modrého života" />
+                    <button type="button" class="hero-image-button"
+                            aria-label="Zvětšit ilustrační obrázek Modrého života" onclick="otevritObrazek()">
+                        <img src="/media/modry-zivot-uvod.png" alt="Ilustrační obrázek Modrého života" />
+                    </button>
                 </div>
             </div>
         </div>
     </section>
+
+    <div id="image-lightbox" class="image-lightbox" hidden role="dialog" aria-modal="true"
+         aria-label="Zvětšený ilustrační obrázek">
+        <button type="button" class="image-lightbox-close" aria-label="Zavřít obrázek"
+                onclick="zavritObrazek()">&times;</button>
+        <img src="/media/modry-zivot-uvod.png" alt="Zvětšený ilustrační obrázek Modrého života"
+             onclick="event.stopPropagation()" />
+    </div>
 
     <section class="mb-4 mb-lg-5">
         <div class="text-center mb-4">
@@ -301,3 +368,24 @@
                     </div>
                 </section>
             </div>
+
+            <script>
+                function otevritObrazek() {
+                    const lightbox = document.getElementById('image-lightbox');
+                    lightbox.hidden = false;
+                    document.body.style.overflow = 'hidden';
+                    lightbox.querySelector('.image-lightbox-close').focus();
+                }
+
+                function zavritObrazek() {
+                    document.getElementById('image-lightbox').hidden = true;
+                    document.body.style.overflow = '';
+                }
+
+                document.getElementById('image-lightbox').addEventListener('click', zavritObrazek);
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        zavritObrazek();
+                    }
+                });
+            </script>

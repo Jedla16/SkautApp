@@ -9,7 +9,7 @@ services:
       # ConnectionStrings__umbracoDbDSN: "Data Source=|DataDirectory|/Modry_zivot.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
     volumes:
       - ./umbraco/Data:/app/umbraco/Data
-      - skautapp_www:/app/wwwroot
+      - ./wwwroot/media:/app/wwwroot/media
       - ./appsettings.Production.json:/app/appsettings.Production.json:ro
     restart: unless-stopped
     healthcheck:
@@ -34,6 +34,5 @@ services:
       - skautapp
 
 volumes:
-  skautapp_www:
   caddy_data:
   caddy_config:
